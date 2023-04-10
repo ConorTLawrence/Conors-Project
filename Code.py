@@ -1,32 +1,30 @@
-import cv2
+import tensorflow as tf
+from tensorflow.keras.applications.resnet50 import preprocess_input, decode_predictions
+from tensorflow.keras.preprocessing import image
+import numpy as np
 
-# Load the reference image
-ref_image = cv2.imread('ref_image.jpg', cv2.IMREAD_GRAYSCALE)
+# Load the pre-trained ResNet50 model
+model = tf.keras.applications.ResNet50(weights='imagenet')
 
-# Initialize a list to store the registered images
-registered_images = []
+# Define the list of kitchen knife classes
+classes = ['Boning Knife', 'Carving Knife', 'Butcher Knife', 'Cleaver', 'Chefs Knife', 'Santoku', 'Stapula Knife']
 
-# Load each knife image and perform registration
-for i in range(1, 9):
-    # Load the current image
-    curr_image = cv2.imread(f'knife_{i}.jpg', cv2.IMREAD_GRAYSCALE)
-    
-    # Perform registration
-    warp_mode = cv2.MOTION_EUCLIDEAN
-    warp_matrix = np.eye(2, 3, dtype=np.float32)
-    criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 1000, 1e-5)
-    (cc, warp_matrix) = cv2.findTransformECC(ref_image, curr_image, warp_matrix, warp_mode, criteria)
+# Load the input image and preprocess it
+img_path = 'path/to/image.jpg'
+img = image.load_img(img_path, target_size=(224, 224))
+x = image.img_to_array(img)
+x = np.expand_dims(x, axis=0)
+x = preprocess_input(x)
 
-    # Apply the transformation to the current image
-    registered_image = cv2.warpAffine(curr_image, warp_matrix, (ref_image.shape[1], ref_image.shape[0]), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
+# Use the model to predict the class probabilities for the input image
+preds = model.predict(x)
 
-    # Add the registered image to the list
-    registered_images.append(registered_image)
+# Decode the predicted class probabilities into class names
+results = decode_predictions(preds, top=1)[0]
 
-# Display the registered images
-for i, registered_image in enumerate(registered_images):
-    cv2.imshow(f'Knife {i+1}', registered_image)
-
-# Wait for a key press and then exit
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+# Print the predicted class name
+predicted_class = results[0][1]
+if predicted_class in classes:
+    print(f'The predicted kitchen knife is: {predicted_class}')
+else:
+    print('The input image is not a kitchen knife.')
