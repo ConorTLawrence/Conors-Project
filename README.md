@@ -1,1 +1,1 @@
-This will be a project about showing what type of Knife is on the screen through AI image reogcinztion 
+This will be a project about showing what type of Knife is on the screen through a picture uploded with the limted amount of my abilty there are seven types of knives andif the knife isn't in any of the catogries it will show as none.
